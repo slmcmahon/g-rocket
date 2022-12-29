@@ -25,7 +25,7 @@ def main():
 
         for f in gclient.get_files():
             if f['mimeType'] == 'application/vnd.google-apps.document':
-                records.append(gclient.parse_text_file(f))
+                records.extend(gclient.parse_text_file(f))
             else:
                 pdfs[f['name']] = f['id']
 

@@ -72,7 +72,8 @@ class GRocket():
     def parse_text_file(self, file):
         data = self.download_file(file['id'])
         processed_text = data.decode('utf-8-sig')
-        entry = {}
+        entries = []
+        current = None
         for l in processed_text.splitlines():
             if len(l) == 0:
                 continue
@@ -82,12 +83,14 @@ class GRocket():
                 date = dm[1]
                 header = dm[2].strip()
                 
-                entry['date'] = date
-                entry['header'] = header
-                entry['content'] = ''
-                entry['pdf'] = f"{file['name'].replace('Transcription ', '')}.pdf"
+                current = {}
+                current['date'] = date
+                current['header'] = header
+                current['content'] = ''
+                current['pdf'] = f"{file['name'].replace('Transcription ', '')}.pdf"
+                entries.append(current)
             else:
-                if entry:
-                    entry['content'] += f'{l} '
+                if current:
+                    current['content'] += f'{l} '
                     
-        return entry
+        return entries
