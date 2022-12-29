@@ -6,7 +6,7 @@ import re
 from datetime import datetime
 from collections import namedtuple
 
-from pymongo import MongoClient 
+from pymongo import MongoClient
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -20,7 +20,7 @@ SCOPES = ['https://www.googleapis.com/auth/drive']
 new_files_folder_id = '1f_4r0F3QFDvbdkyHxyPqLt3r--USuCQB'
 processed_files_folder_id = '1ua-Hw-8AVC16TkOyenBIYSaTSKK7nLH1'
 
-LogEntry = namedtuple("LogEntry", "date header content")
+dateline_pattern = re.compile("\+.*?(\d{2}-\S{3}-\d{4})\s*[-]?\s*(.*)")
 
 
 def get_files(service):
@@ -71,14 +71,10 @@ def download_file(service, file_id):
 
     return file.getvalue()
 
+
 def write_to_db(records):
     client = MongoClient(os.getenv('PYMONGO_PERSONAL'))
-    db = client['RocketNotes']
-    col = db['notes']
-    col.insert_many(records)
-
-
-date_pattern = re.compile("\+.*?(\d{2}-\S{3}-\d{4})\s*[-]?\s*(.*)")
+    client['RocketNotes']['notes'].insert_many(records)
 
 
 def main():
@@ -98,10 +94,10 @@ def main():
                         continue
 
                     if l.startswith('+'):
-                        dm = date_pattern.match(l)
-                        date = dm[1] 
+                        dm = dateline_pattern.match(l)
+                        date = dm[1]
                         header = dm[2].strip()
-                        
+
                         current = {}
                         current['date'] = date
                         current['header'] = header
@@ -113,14 +109,13 @@ def main():
                             current['content'] += f'{l} '
             else:
                 pdfs[f['name']] = f['id']
-                                
-                
-            #move_file(service=service, file_id=f['id'])
+
+            move_file(service=service, file_id=f['id'])
         for r in records:
             r['content'] = r['content'].strip()
             r['pdf_file_id'] = pdfs[r['pdf']]
             print(f"{r['date']} ({r['header']})\n{r['content']}\n")
-            
+
         if len(records) > 0:
             write_to_db(records)
 
