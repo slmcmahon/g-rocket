@@ -13,6 +13,7 @@ dateline_pattern = re.compile("\+.*?(\d{2}-\S{3}-\d{4})\s*[-]?\s*(.*)")
 
 gclient = GRocket(folder_id, backup_folder_id)
 
+
 def write_to_db(records):
     client = MongoClient(os.getenv('PYMONGO_PERSONAL'))
     client['RocketNotes']['notes'].insert_many(records)
@@ -29,7 +30,7 @@ def main():
             else:
                 pdfs[f['name']] = f['id']
 
-            #gclient.backup_file(file_id=f['id'])
+            gclient.backup_file(file_id=f['id'])
         for r in records:
             r['content'] = r['content'].strip()
             r['pdf_file_id'] = pdfs[r['pdf']]

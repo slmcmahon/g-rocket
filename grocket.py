@@ -1,7 +1,7 @@
 from __future__ import print_function
 import io
 import os
-import re 
+import re
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -68,7 +68,7 @@ class GRocket():
             #print(f'Download {int(status.progress() * 100)}.')
 
         return file.getvalue()
-    
+
     def parse_text_file(self, file):
         data = self.download_file(file['id'])
         processed_text = data.decode('utf-8-sig')
@@ -82,7 +82,7 @@ class GRocket():
                 dm = self.DATELINE_PATTERN.match(l)
                 date = dm[1]
                 header = dm[2].strip()
-                
+
                 current = {}
                 current['date'] = date
                 current['header'] = header
@@ -92,5 +92,5 @@ class GRocket():
             else:
                 if current:
                     current['content'] += f'{l} '
-                    
+
         return entries
