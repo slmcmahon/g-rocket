@@ -74,14 +74,18 @@ class GRocket():
         processed_text = data.decode('utf-8-sig')
         entries = []
         current = None
-        for l in processed_text.splitlines():
-            if len(l) == 0:
+        for line in processed_text.splitlines():
+            if len(line) == 0:
                 continue
 
-            if l.startswith('+'):
-                dm = self.DATELINE_PATTERN.match(l)
-                date = dm[1]
-                header = dm[2].strip()
+            if line.startswith('+'):
+                date_match = self.DATELINE_PATTERN.match(line)
+                if not date_match:
+                    continue
+                date = date_match[1]
+                header = 'N/A'
+                if date_match[2]:
+                    header = date_match[2].strip()
 
                 current = {}
                 current['date'] = date
@@ -91,6 +95,6 @@ class GRocket():
                 entries.append(current)
             else:
                 if current:
-                    current['content'] += f'{l} '
+                    current['content'] += f'{line} '
 
         return entries
