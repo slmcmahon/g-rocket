@@ -1,3 +1,4 @@
-google-api-python-client
-google-auth-httplib2 
-google-auth-oauthlib
+oogle-api-python-client==2.70.0
+google-auth-httplib2==0.1.0
+google-auth-oauthlib==0.8.0
+pymongo==4.3.3
