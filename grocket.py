@@ -12,7 +12,7 @@ from googleapiclient.http import MediaIoBaseDownload
 
 
 class GRocket():
-
+    """ Helper tool for Google Drive Actions """
     SCOPES = ['https://www.googleapis.com/auth/drive']
     DATELINE_PATTERN = re.compile("\+.*?(\d{2}-\S{3}-\d{4})\s*[-]?\s*(.*)")
 
@@ -33,12 +33,9 @@ class GRocket():
                 flow = InstalledAppFlow.from_client_secrets_file(
                     'credentials.json', self.SCOPES)
                 creds = flow.run_local_server(port=0)
-            with open('token.json', 'w') as token:
+            with open('token.json', 'w', encoding='utf-8') as token:
                 token.write(creds.to_json())
         self.service = build('drive', 'v3', credentials=creds)
-
-    def get_service(self):
-        return self.service
 
     def get_files(self):
         try:
@@ -57,44 +54,14 @@ class GRocket():
                                            removeParents=previous_parents, fields='id, parents').execute()
         return file.get('parents')
 
-    def download_file(self, file_id):
+    def download_text(self, file_id):
         request = self.service.files().export_media(
             fileId=file_id, mimeType='text/plain')
         file = io.BytesIO()
         downloader = MediaIoBaseDownload(file, request)
         done = False
         while done is False:
-            status, done = downloader.next_chunk()
-            #print(f'Download {int(status.progress() * 100)}.')
+            _, done = downloader.next_chunk()
+            # print(f'Download {int(status.progress() * 100)}.')
 
-        return file.getvalue()
-
-    def parse_text_file(self, file):
-        data = self.download_file(file['id'])
-        processed_text = data.decode('utf-8-sig')
-        entries = []
-        current = None
-        for line in processed_text.splitlines():
-            if len(line) == 0:
-                continue
-
-            if line.startswith('+'):
-                date_match = self.DATELINE_PATTERN.match(line)
-                if not date_match:
-                    continue
-                date = date_match[1]
-                header = 'N/A'
-                if date_match[2]:
-                    header = date_match[2].strip()
-
-                current = {}
-                current['date'] = date
-                current['header'] = header
-                current['content'] = ''
-                current['pdf'] = f"{file['name'].replace('Transcription ', '')}.pdf"
-                entries.append(current)
-            else:
-                if current:
-                    current['content'] += f'{line} '
-
-        return entries
+        return file.getvalue().decode('utf-8-sig')
